@@ -172,6 +172,13 @@ describe('LocationManager', function() {
                 .done();
     });
 
+	it('turns SmartSuppression off and on', function(done) {
+		locationManager.disableSmartSuppression()
+			.then(locationManager.enableSmartSuppression)
+			.then(done)
+			.done();
+	});
+
     it('queries the native layer for authorizationStatus', function(done) {
         var validStatuses = [
             'AuthorizationStatusNotDetermined',

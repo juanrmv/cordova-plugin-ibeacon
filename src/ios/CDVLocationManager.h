@@ -45,6 +45,16 @@ const int CDV_LOCATION_MANAGER_INPUT_PARSE_ERROR = 100;
 
 @property BOOL debugNotificationsEnabled;
 
+/*
+ *  smartSuppressionEnabled:
+ *
+ *  Discussion:
+ *      Suppresses region monitoring notifications based on the last known location.
+ *      If the last known location is not inside the circular region that the OS
+ *      claims the device to be in, the event gets suppressed by the plugin.
+ */
+@property BOOL smartSuppressionEnabled;
+
 @property (retain) CBPeripheralManager *peripheralManager;
 @property (retain) CLRegion *advertisedBeaconRegion;
 @property (retain) NSDictionary *advertisedPeripheralData;
@@ -71,6 +81,9 @@ const int CDV_LOCATION_MANAGER_INPUT_PARSE_ERROR = 100;
 - (void)getAuthorizationStatus:(CDVInvokedUrlCommand*)command;
 - (void)getMonitoredRegions:(CDVInvokedUrlCommand*)command;
 - (void)getRangedRegions:(CDVInvokedUrlCommand*)command;
+
+- (void)disableSmartSuppression:(CDVInvokedUrlCommand*)command;
+- (void)enableSmartSuppression:(CDVInvokedUrlCommand*)command;
 
 - (void)disableDebugNotifications:(CDVInvokedUrlCommand*)command;
 - (void)enableDebugNotifications:(CDVInvokedUrlCommand*)command;

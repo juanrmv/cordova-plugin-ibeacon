@@ -57,6 +57,8 @@ var LocationManager = klass({
     bindMethodContexts: function() {
         this.disableDebugLogs = _.bind(this.disableDebugLogs, this);
         this.enableDebugLogs = _.bind(this.enableDebugLogs, this);
+		this.disableSmartSuppression = _.bind(this.disableSmartSuppression, this);
+		this.enableSmartSuppression = _.bind(this.enableSmartSuppression, this);
     },
     getDelegate: function() {
         return this.delegate;
@@ -434,6 +436,32 @@ var LocationManager = klass({
 	 */
 	enableDebugLogs: function() {
 		return this._promisedExec('enableDebugLogs', [], []);
+	},
+	/**
+	 * Enables Smart Suppression in the native layer. Use this method if you want
+	 * the plugin to apply some logic (considered to be 'smart') to determine
+	 * if a {@code CircularRegion}'s {@code didEnterRegion} message from the
+	 * OS seems valid and if not, suppress it automatically.
+	 * <br/>
+	 * The algorithm might be different on different mobile platforms, based on
+	 * what the underlying OS APIs give the plugin to work with.
+	 *
+	 * @returns {Q.Promise} Returns a promise which is resolved as soon as the
+	 * native layer has enabled Smart Suppression.
+	 */
+	enableSmartSuppression: function() {
+		return this._promisedExec('enableSmartSuppression', [], []);
+	},
+	/**
+	 * Disables Smart Suppression in the native layer.
+	 *
+	 * @returns {Q.Promise} Returns a promise which is resolved as soon as the
+	 * native layer has enabled Smart Suppression.
+	 *
+	 * @see {@link LocationManager#enableSmartSuppression}.
+	 */
+	disableSmartSuppression: function() {
+		return this._promisedExec('disableSmartSuppression', [], []);
 	},
     /**
      * Appends the provided [message] to the device logs.

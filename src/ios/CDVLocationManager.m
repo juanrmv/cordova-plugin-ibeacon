@@ -36,6 +36,7 @@
     
     self.debugLogEnabled = true;
     self.debugNotificationsEnabled = false;
+    self.smartSuppressionEnabled = false;
 }
 
 - (void) initLocationManager {
@@ -119,6 +120,8 @@
             [dict setObject:[self jsCallbackNameForSelector:(_cmd)] forKey:@"eventType"];
             [dict setObject:[self mapOfRegion:region] forKey:@"region"];
             
+            [self possiblySmartSuppress: region inResultDict: dict];
+
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dict];
             [pluginResult setKeepCallbackAsBool:YES];
             return pluginResult;
@@ -224,6 +227,25 @@
 
         // Starts propagating the events.
         [self resumeEventPropagationToDom];
+        
+        return [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    } :command];
+}
+
+- (void)disableSmartSuppression:(CDVInvokedUrlCommand*)command {
+    [self _handleCallSafely:^CDVPluginResult *(CDVInvokedUrlCommand * command) {
+        
+        self.smartSuppressionEnabled = false;
+        
+        return [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    } :command];
+    
+}
+
+- (void)enableSmartSuppression:(CDVInvokedUrlCommand*)command {
+    [self _handleCallSafely:^CDVPluginResult *(CDVInvokedUrlCommand * command) {
+        
+        self.smartSuppressionEnabled = true;
         
         return [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     } :command];
@@ -725,6 +747,51 @@
 }
 
 #pragma mark Utilities
+
+- (void) possiblySmartSuppress: (CLRegion*) region inResultDict: (NSMutableDictionary *) resultDict {
+
+    if (region == nil) {
+        [[self getLogger] debugLog:@"WARNING Could not apply Smart Suppression, region is nil."];
+        return;
+    }
+    
+    if (resultDict == nil) {
+        [[self getLogger] debugLog:@"WARNING Could not apply Smart Suppression, resultDict is nil."];
+        return;
+    }
+    
+    if (self.smartSuppressionEnabled && [region isKindOfClass:[CLCircularRegion class]]) {
+        
+        CLCircularRegion* circularRegion = (CLCircularRegion*) region;
+        
+        NSNumber *shouldSuppress = [NSNumber numberWithBool:[self shouldSuppress:circularRegion]];
+        
+        [resultDict setObject: shouldSuppress forKey:@"shouldSuppress"];
+    }
+}
+
+- (BOOL) shouldSuppress: (CLCircularRegion*) region {
+    
+    if (region == nil) {
+        
+        return false;
+        
+    } else if (self.locationManager.location == nil) {
+        
+        [[self getLogger] debugNotification:@"No last known location is available when checking %@ for Smart Suppression.", region.identifier];
+        return false;
+        
+    } else {
+        
+        BOOL shouldSuppress = ![region containsCoordinate:self.locationManager.location.coordinate];
+        
+        if (shouldSuppress) {
+            [[self getLogger] debugNotification:@"Smart Suppression kicked in for %@.", region.identifier];
+        }
+        
+        return shouldSuppress;
+    }
+}
 
 - (NSError*) parseErrorWithDescription:(NSString*) description {
     return [self errorWithCode:CDV_LOCATION_MANAGER_INPUT_PARSE_ERROR andDescription:description];
